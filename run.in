@@ -1,0 +1,17 @@
+/run/initialize
+
+# Select parameters to run the clustering algorithm
+#
+/clustering/algo/setMinPts 2			  #default Value = 2
+/clustering/algo/setSelectionProb 0.055 # 0.039*?   0.07~0.12
+/clustering/algo/setChemSelectionProb 0.055 #0.07~0.12*(1+0.2)
+
+/clustering/algo/setEps 3.2 nanometer  	  #default Value = 3.2 nm
+/clustering/algo/setEmin 5 eV			  #default Value = 5 eV
+/clustering/algo/setEmax 37.5 eV		  #default Value = 37.5 eV
+/clustering/algo/setReactionRate 0.65     #default Value = 0.4~0.65
+
+/gun/energy 50 MeV
+/run/beamOn 1000
+#/run/printProgress 250
+
