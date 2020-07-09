@@ -90,12 +90,12 @@ ClusteringAlgoMessenger::ClusteringAlgoMessenger(ClusteringAlgo *pClustAlgo)
   fpEmaxCmd->SetRange("Emax>=0");
   fpEmaxCmd->AvailableForStates(G4State_Idle);
 
-  fpReaRatCmd = new G4UIcmdWithADouble("/clustering/algo/setReactionRate", this);
-  fpReaRatCmd->SetGuidance("Probability to OH. "
-                           "reaction rate ");
-  fpReaRatCmd->SetParameterName("Prob", false);
-  fpReaRatCmd->SetRange("Prob>0");
-  fpReaRatCmd->AvailableForStates(G4State_Idle);
+  fpIndDamProbCmd = new G4UIcmdWithADouble("/clustering/algo/setIndDamProb", this);
+  fpIndDamProbCmd->SetGuidance("Probability for ·OH. "
+                           "to create a indirect damage ");
+  fpIndDamProbCmd->SetParameterName("Prob", false);
+  fpIndDamProbCmd->SetRange("Prob>0");
+  fpIndDamProbCmd->AvailableForStates(G4State_Idle);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -108,7 +108,7 @@ ClusteringAlgoMessenger::~ClusteringAlgoMessenger() {
   delete fpEminCmd;
   delete fpEmaxCmd;
   delete fpAppliDir;
-  delete fpReaRatCmd;
+  delete fpIndDamProbCmd;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -133,7 +133,7 @@ void ClusteringAlgoMessenger::SetNewValue(G4UIcommand *pCommand,
   if (pCommand == fpEmaxCmd) {
     fpClusteringAlgo->SetEMaxDamage(fpEmaxCmd->GetNewDoubleValue(pNewValue));
   }
-  if (pCommand == fpReaRatCmd) {
-    fpClusteringAlgo->SetReactionRate(fpReaRatCmd->GetNewDoubleValue(pNewValue));
+  if (pCommand == fpIndDamProbCmd) {
+    fpClusteringAlgo->SetIndDamProb(fpIndDamProbCmd->GetNewDoubleValue(pNewValue));
   }
 }

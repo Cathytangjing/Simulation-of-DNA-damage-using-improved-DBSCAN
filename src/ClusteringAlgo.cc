@@ -29,7 +29,14 @@
 // Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-// Authors: Henri Payno and Yann Perrot
+// The original DBSCAN clustering algorithm is reproduced by Henri Payno
+// and Yann Perrot at Blaise Pascal University, which has been released as
+// a Geant4-DNA user example, then published in a file sub-folder named
+// “extended/medical/dna/clustering”.
+//
+// Jing Tang,Qinfeng Xiao et al. improve the DBSCAN algorithm by utilizing
+// the KD-Tree to find neighbors of each site to calculate clustered DNA damage
+// This work is published:
 //
 // $Id$
 //
@@ -42,8 +49,6 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
-// Import for kd-tree support
-//#include "tree.h"
 #include "flann/flann.hpp"
 
 #include <map>
@@ -59,14 +64,14 @@ ClusteringAlgo::ClusteringAlgo(G4double pEps,
                                G4double pChemicalPointsProb,
                                G4double pEMinDamage,
                                G4double pEMaxDamage,
-                               G4double reaction_rate)
+                               G4double ind_dam_prob)
     : energy_(pEps),
       min_pts_(pMinPts),
       damage_prob_(pSPointsProb),
       chemical_damage_prob_(pChemicalPointsProb),
       min_damage_energy_(pEMinDamage),
       max_damage_energy_(pEMaxDamage),
-      reaction_rate_(reaction_rate),
+      ind_dam_prob_(ind_dam_prob),
       runing_time_(0.0) {
   next_point_id_ = 0;
   messenger_ = new ClusteringAlgoMessenger(this);
@@ -90,8 +95,8 @@ G4bool ClusteringAlgo::IsInChemicalSensitiveArea() {
   return chemical_damage_prob_ > G4UniformRand();
 }
 
-G4bool ClusteringAlgo::IsReactionRate() {
-  return reaction_rate_ > G4UniformRand();
+G4bool ClusteringAlgo::IsIndDamProb() {
+  return ind_dam_prob_ > G4UniformRand();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -112,8 +117,8 @@ G4bool ClusteringAlgo::IsEdepSufficient(G4double pEdep) {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-// Add an event interaction to the unregistered damage if
-// good conditions (pos and energy) are met
+// Add an event interaction to the unregistered damage in
+// the physical process if good conditions (pos and energy) are met
 //
 
 void ClusteringAlgo::RegisterPhysicalDamage(G4ThreeVector pPos, G4double pEdep) {
@@ -123,12 +128,13 @@ void ClusteringAlgo::RegisterPhysicalDamage(G4ThreeVector pPos, G4double pEdep) 
     }
   }
 }
-
+// Add an event interaction to the unregistered damage in
+// the chemical process if ·OH radical hit DNA
 G4bool ClusteringAlgo::RegisterChemicalDamage(G4ThreeVector pPos) {
   if (IsInChemicalSensitiveArea()) {
-    if (IsReactionRate()) {
+    if (IsIndDamProb()) {
       set_of_points_.push_back(new SBPoint(next_point_id_++, pPos, max_damage_energy_));
-      return true; // want to kill the OH in the ITTrackingAction by TJ
+      return true;
     }
   }
 }
@@ -140,7 +146,6 @@ map<G4int, G4int> ClusteringAlgo::RunClustering() {
 
   const G4int num_input = set_of_points_.size();
   const G4int dim = 3;
-  //G4int nbSSB = num_input;  //tj
 
   double target_data[num_input * dim];
   for (int i = 0; i < num_input; i++) {
@@ -149,6 +154,7 @@ map<G4int, G4int> ClusteringAlgo::RunClustering() {
     }
   }
 
+// Build KD-tree
   flann::Matrix<double> dataset(target_data, num_input, dim);
   flann::Index<flann::L2<double>> index(dataset, flann::KDTreeSingleIndexParams(16));
   index.buildIndex();
@@ -162,7 +168,6 @@ map<G4int, G4int> ClusteringAlgo::RunClustering() {
     auto ind = inds[i];
     auto dist = dists[i];
     if (!(set_of_points_[i]->HasCluster()))
-      // tj modified
     {
       if (ind.size() > 1) {
         // For each neighbor
@@ -175,9 +180,7 @@ map<G4int, G4int> ClusteringAlgo::RunClustering() {
                 // create the new cluster
                 std::set<SBPoint *> clusterPoints;
                 clusterPoints.insert(&left_point);
-                //nbSSB--;
                 clusterPoints.insert(&right_point);
-                //nbSSB--;
                 ClusterSBPoints *lCluster = new ClusterSBPoints(clusterPoints);
                 assert(lCluster);
                 clusters_.push_back(lCluster);
@@ -191,7 +194,6 @@ map<G4int, G4int> ClusteringAlgo::RunClustering() {
                 if (right_point.HasCluster()) {
                   right_point.GetCluster()->AddSBPoint(&left_point);
                   left_point.SetCluster(right_point.GetCluster());
-                  //nbSSB--;
                 }
               }
             }
@@ -203,124 +205,17 @@ map<G4int, G4int> ClusteringAlgo::RunClustering() {
     }
   }
 
-  // Build KD-Tree
-//  delete kdtree_;
-//  kdtree_ = nullptr;
-//
-//  SBPoint min(0, G4ThreeVector(-9.85 * um, -7.1 * um, -2.5 * um), 0);
-//  SBPoint max(0, G4ThreeVector(9.85 * um, 7.1 * um, 2.5 * um), 0);
-//  kdtree_ = new KD::Tree<CORE>(min, max);
-//
-//  // Add points
-//  for (auto i = 0; i < set_of_points_.size(); i++) {
-//    kdtree_->insert((*set_of_points_[i]));
-//  }
-//
-//  for (auto i = 0; i < set_of_points_.size(); i++) {
-//    // For current point
-//    // Get all points with specified radius
-//    std::vector<SBPoint> within_points = kdtree_->within((*set_of_points_[i]), energy_);
-//    for (auto right_point : within_points) {
-//      SBPoint &left_point = (*set_of_points_[i]);
-//      if (left_point == right_point) {
-//        continue;
-//      }
-//
-//      if (!(left_point.HasCluster()&&right_point.HasCluster())) {
-//        if (!left_point.HasCluster() && !right_point.HasCluster()) {
-//          // create the new cluster
-//          set<SBPoint *> clusterPoints;
-//          clusterPoints.insert(&left_point);
-//          clusterPoints.insert(&right_point);
-//          ClusterSBPoints *lCluster = new ClusterSBPoints(clusterPoints);
-//          assert(lCluster);
-//          clusters_.push_back(lCluster);
-//          assert(lCluster);
-//          // inform SB point that they are part of a cluster now
-//          assert(lCluster);
-//          left_point.SetCluster(lCluster);
-//          assert(lCluster);
-//          right_point.SetCluster(lCluster);
-//        } else {
-//          if (left_point.HasCluster()) {
-//            left_point.GetCluster()->AddSBPoint(&right_point);
-//            right_point.SetCluster(left_point.GetCluster());
-//          } else {
-//            right_point.GetCluster()->AddSBPoint(&left_point);
-//            left_point.SetCluster(right_point.GetCluster());
-//          }
-//        }
-//      }
-//    }
-//  }
-
-  // quick sort style
-  // create cluster
-//  std::vector<SBPoint *>::iterator itVisitorPt, itObservedPt;
-//  for (itVisitorPt = set_of_points_.begin();
-//       itVisitorPt != set_of_points_.end();
-//       ++itVisitorPt) {
-//    itObservedPt = itVisitorPt;
-//    itObservedPt++;
-//    while (itObservedPt != set_of_points_.end()) {
-//      // if at least one of the two points has not a cluster
-//      if (!((*itObservedPt)->HasCluster() && (*itVisitorPt)->HasCluster())) {
-//        if (AreOnTheSameCluster((*itObservedPt)->GetPosition(),
-//                                (*itVisitorPt)->GetPosition(), energy_)) {
-//          // if none has a cluster. Create a new one
-//          if (!(*itObservedPt)->HasCluster() && !(*itVisitorPt)->HasCluster()) {
-//            // create the new cluster
-//            set<SBPoint *> clusterPoints;
-//            clusterPoints.insert((*itObservedPt));
-//            clusterPoints.insert((*itVisitorPt));
-//            ClusterSBPoints *lCluster = new ClusterSBPoints(clusterPoints);
-//            assert(lCluster);
-//            clusters_.push_back(lCluster);
-//            assert(lCluster);
-//            // inform SB point that they are part of a cluster now
-//            assert(lCluster);
-//            (*itObservedPt)->SetCluster(lCluster);
-//            assert(lCluster);
-//            (*itVisitorPt)->SetCluster(lCluster);
-//          } else {
-//            // add the point to the existing cluster
-//            if ((*itObservedPt)->HasCluster()) {
-//              (*itObservedPt)->GetCluster()->AddSBPoint((*itVisitorPt));
-//              (*itVisitorPt)->SetCluster((*itObservedPt)->GetCluster());
-//            }
-//
-//            if ((*itVisitorPt)->HasCluster()) {
-//              (*itVisitorPt)->GetCluster()->AddSBPoint((*itObservedPt));
-//              (*itObservedPt)->SetCluster((*itVisitorPt)->GetCluster());
-//            }
-//          }
-//        }
-//      }
-//      ++itObservedPt;
-//    }
-//  }
-
-  auto clustering_end = std::chrono::system_clock::now();
-
-  std::chrono::duration<double> clustering_time = clustering_end - clustering_start;
-  G4cout << "=================================================================" << G4endl;
-  G4cout << "Clustering algorithm time cost: " << clustering_time.count() << " s." << G4endl;
-  G4cout << "=================================================================" << G4endl;
-
-  runing_time_ = clustering_time.count();
-
   // associate isolated points and merge clusters
   IncludeUnassociatedPoints();
   MergeClusters();
 
   // return cluster size distribution
-  // G4cout <<"| ssb_num |" << nbSSB << G4endl;
   return GetClusterSizeDistribution();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-// try to merge cluster between them, based on the distance between barycenters
+// Try to merge cluster between them, based on the distance between barycenters
 void ClusteringAlgo::MergeClusters() {
   std::vector<ClusterSBPoints *>::iterator itCluster1, itCluster2;
   for (itCluster1 = clusters_.begin();
@@ -368,7 +263,6 @@ bool ClusteringAlgo::FindCluster(SBPoint *pPt) {
   for (itCluster = clusters_.begin();
        itCluster != clusters_.end();
        ++itCluster) {
-    //if((*itCluster)->hasIn(pPt, energy_))
     if ((*itCluster)->HasInBarycenter(pPt, energy_)) {
       (*itCluster)->AddSBPoint(pPt);
       return true;
@@ -389,13 +283,14 @@ bool ClusteringAlgo::AreOnTheSameCluster(G4ThreeVector pPt1,
   G4double y2 = pPt2.y() / nm;
   G4double z2 = pPt2.z() / nm;
 
-  // if the two points are closed enough
+  // If the two points are closed enough
   return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2)) <=
       (pMinDist / nm * pMinDist / nm);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+// Determines the types and numbers of clustered damage including SSB, SSB+, DSB, DSB+,
+// and DSB++, as denoted by Nikjoo et al. 1997
 G4int ClusteringAlgo::GetSSB() const {
   G4int nbSSB = 0;
   std::vector<SBPoint *>::const_iterator itSDSPt;
@@ -411,33 +306,33 @@ G4int ClusteringAlgo::GetSSB() const {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4int ClusteringAlgo::GetComplexSSB() const {
-  G4int nbSSB = 0;
-  std::vector<ClusterSBPoints *>::const_iterator itCluster;
-  for (itCluster = clusters_.begin();
-       itCluster != clusters_.end();
-       ++itCluster) {
-    if ((*itCluster)->IsSSB()) {
-      nbSSB++;
-    }
-  }
-  return nbSSB;
-}
+//G4int ClusteringAlgo::GetComplexSSB() const {
+//  G4int nbSSB = 0;
+//  std::vector<ClusterSBPoints *>::const_iterator itCluster;
+//  for (itCluster = clusters_.begin();
+//       itCluster != clusters_.end();
+//       ++itCluster) {
+//    if ((*itCluster)->IsSSB()) {
+//      nbSSB++;
+//    }
+//  }
+//  return nbSSB;
+//}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4int ClusteringAlgo::GetDSB() const {
-  G4int nbDSB = 0;
-  std::vector<ClusterSBPoints *>::const_iterator itCluster;
-  for (itCluster = clusters_.begin();
-       itCluster != clusters_.end();
-       ++itCluster) {
-    if ((*itCluster)->IsDSB()) {
-      nbDSB++;
-    }
-  }
-  return nbDSB;
-}
+//G4int ClusteringAlgo::GetDSB() const {
+//  G4int nbDSB = 0;
+//  std::vector<ClusterSBPoints *>::const_iterator itCluster;
+//  for (itCluster = clusters_.begin();
+//       itCluster != clusters_.end();
+//       ++itCluster) {
+//    if ((*itCluster)->IsDSB()) {
+//      nbDSB++;
+//    }
+//  }
+//  return nbDSB;
+//}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

@@ -69,7 +69,6 @@ void ActionInitialization::BuildForMaster() const {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void ActionInitialization::Build() const {
-//  PrimaryGeneratorAction* particle = new  PrimaryGeneratorAction();
   SetUserAction(new RunAction());
   SetUserAction(new PrimaryGeneratorAction());
   SetUserAction(new EventAction());
@@ -88,29 +87,6 @@ void ActionInitialization::Build() const {
     tracking_interactivity->SetUserAction(new ITTrackingAction());
     G4Scheduler::Instance()->SetInteractivity(tracking_interactivity);
   }
-  /*
-   // To output the pre-chemical stage
-   //
-   G4String fileName ("output");
 
-   if(G4RunManager::GetRunManager()->GetRunManagerType() ==
-       G4RunManager::sequentialRM)
-   {
-     // write initial situation at 1 picosecond
-     G4DNAChemistryManager::Instance()->WriteInto(fileName + ".txt");
-   }
-   else
-   {
-     G4int id = G4Threading::G4GetThreadId();
-
-     G4String fileName_mt = fileName;
-     fileName_mt += G4UIcommand::ConvertToString(id);
-     fileName_mt += ".txt";
-
-     G4cout << "chosen file name : " << fileName_mt << G4endl;
-
-     G4DNAChemistryManager::Instance()->WriteInto(fileName_mt);
-   }
- */
 }
 

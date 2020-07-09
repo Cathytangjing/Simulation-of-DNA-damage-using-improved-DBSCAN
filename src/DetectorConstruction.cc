@@ -79,7 +79,7 @@ void DetectorConstruction::DefineMaterials() {
 
 G4VPhysicalVolume *DetectorConstruction::ConstructVolumes() {
   // World
-  G4Box *solidWorld = new G4Box("World", 20.0 * micrometer, 20.0 * micrometer, 20.0 * micrometer);  //10.0 * mm
+  G4Box *solidWorld = new G4Box("World", 20.0 * micrometer, 20.0 * micrometer, 20.0 * micrometer);
 
   G4LogicalVolume *logicWorld = new G4LogicalVolume(solidWorld,
                                                     water_material_,
@@ -93,11 +93,10 @@ G4VPhysicalVolume *DetectorConstruction::ConstructVolumes() {
                                                     0);
 
 
-//  G4Box *solidTarget = new G4Box("Target", 1.0 * micrometer, 1.0 * micrometer, 0.5 * micrometer);  // Francis 2011
   G4Ellipsoid *solidTarget = new G4Ellipsoid("Target",
-                                             9.85 * micrometer,//9.85,9.55
-                                             7.1 * micrometer,//7.1,5.5
-                                             2.5 * micrometer,//2.5,1
+                                             9.85 * micrometer,
+                                             7.1 * micrometer,
+                                             2.5 * micrometer,
                                              0,
                                              0);
   G4LogicalVolume *logicTarget = new G4LogicalVolume(solidTarget, water_material_, "Target");
@@ -110,44 +109,6 @@ G4VPhysicalVolume *DetectorConstruction::ConstructVolumes() {
                     false,
                     0);
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//// from Francis et al. Comput. Meth. Programs. Biomed. 2011 101(3)
-//    // World
-//  G4double worldSize  = 2*micrometer;
-//
-//  G4Box* solidWorld = new G4Box("World",
-//                                worldSize/2.,
-//                                worldSize/2.,
-//                                worldSize/2.);
-//  G4LogicalVolume* logicWorld = new G4LogicalVolume(solidWorld,
-//                                                    default_material_,
-//                                                    "World");
-//  G4VPhysicalVolume* physiWorld = new G4PVPlacement(0,
-//                                                    G4ThreeVector(),
-//                                                    "World",
-//                                                    logicWorld,
-//                                                    0,
-//                                                    false,
-//                                                    0);
-//  // Target Box
-//  // from Francis et al. Comput. Meth. Programs. Biomed. 2011 101(3)
-//  G4double targetSizeXY=1*micrometer;
-//  G4double targetSizeZ=0.5*micrometer;
-//
-//  G4Box* solidTarget
-//  = new G4Box("Target", targetSizeXY/2.,targetSizeXY/2.,targetSizeZ/2.);
-//  G4LogicalVolume* logicTarget
-//  = new G4LogicalVolume(solidTarget, water_material_, "Target");
-//  new G4PVPlacement(0,
-//                    G4ThreeVector(),
-//                    "Target",
-//                    logicTarget,
-//                    physiWorld,
-//                    false,
-//                    0);
-
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
   // Visualization attributes
   G4VisAttributes *worldVisAtt = new G4VisAttributes(G4Colour(1.0, 1.0, 1.0));
   worldVisAtt->SetVisibility(false);
@@ -157,8 +118,6 @@ G4VPhysicalVolume *DetectorConstruction::ConstructVolumes() {
   targetVisAtt->SetVisibility(true);
   targetVisAtt->SetForceAuxEdgeVisible(true);
   logicTarget->SetVisAttributes(targetVisAtt);
-
-
 
   //always return the world volume
   return physiWorld;

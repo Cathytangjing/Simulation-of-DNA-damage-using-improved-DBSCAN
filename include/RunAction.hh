@@ -1,5 +1,3 @@
-
-
 //
 // ********************************************************************
 // * License and Disclaimer                                           *
@@ -56,15 +54,11 @@ class RunActionMessenger;
 class RunAction : public G4UserRunAction {
  public:
   RunAction();
-  RunAction(const G4Accumulable<SizeDistribution> &distribution_);
-//  RunAction(PrimaryGeneratorAction* particle);
   virtual ~RunAction();
 
   virtual void BeginOfRunAction(const G4Run *);
   virtual void EndOfRunAction(const G4Run *);
 
-  void CreateHistogram();
-  void WriteHistogram();
   void SetHistoName(G4String &val) {
     fFileName = val;
   };
@@ -77,13 +71,6 @@ class RunAction : public G4UserRunAction {
     ssb_num_ += num;
   }
 
-  inline void AddComplexSingleStrandBreak(G4int num) {
-    cssb_num_ += num;
-  }
-
-  inline void AddDoubleStrandBreak(G4int num) {
-    dsb_num_ += num;
-  }
 
   inline void AddComplexSingleStrandBreakNew(G4int num) {
     cssbn_num_ += num;
@@ -101,30 +88,6 @@ class RunAction : public G4UserRunAction {
     dsbpp_num_ += num;
   }
 
-  inline void AddPowSSBNumDiff(G4double diff) {
-    pow_ssb_n_diff_ += diff;
-  }
-
-  inline void AddPowCSSBNumDiff(G4double diff) {
-    pow_cssb_n_diff_ += diff;
-  }
-
-  inline void AddPowDSBNumDiff(G4double diff) {
-    pow_dsb_n_diff_ += diff;
-  }
-
-  inline void AddPowDSBnNumDiff(G4double diff) {
-    pow_dsbn_n_diff_ += diff;
-  }
-
-  inline void AddPowDSBpNumDiff(G4double diff) {
-    pow_dsbp_n_diff_ += diff;
-  }
-
-  inline void AddPowDSBppNumDiff(G4double diff) {
-    pow_dsbpp_n_diff_ += diff;
-  }
-
   inline void AddDistribution(G4int num) {
     distribution_ += std::to_string(num) + " ";
   }
@@ -134,26 +97,14 @@ class RunAction : public G4UserRunAction {
 
   G4String fFileName;
   RunActionMessenger *run_messenger_;
-//  PrimaryGeneratorAction* particle_;
 
   G4Accumulable<G4double> energy_deposition_;
   G4Accumulable<G4int> ssb_num_;
-  G4Accumulable<G4int> cssb_num_;
-  G4Accumulable<G4int> dsb_num_;
   G4Accumulable<G4int> cssbn_num_;
   G4Accumulable<G4int> dsbn_num_;
   G4Accumulable<G4int> dsbp_num_;
   G4Accumulable<G4int> dsbpp_num_;
   G4Accumulable<G4String> distribution_;
-  G4Accumulable<G4double> pow_ssb_n_diff_;
-  G4Accumulable<G4double> pow_cssb_n_diff_;
-  G4Accumulable<G4double> pow_dsb_n_diff_;
-  G4Accumulable<G4double> pow_dsbn_n_diff_;
-  G4Accumulable<G4double> pow_dsbp_n_diff_;
-  G4Accumulable<G4double> pow_dsbpp_n_diff_;
-  //G4Accumulable<SizeDistribution> distribution_;
-
-  //FILE* event_log_;
 };
 
 #endif

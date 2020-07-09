@@ -1,0 +1,103 @@
+-------------------------------------------------------------------
+
+     =========================================================
+          Simulation of DNA damage using improved DBSCAN
+     =========================================================
+
+
+Jing Tang(a) and Qinfeng Xiao(b)
+(a) Shanxi Provincial Key Laboratory for Biomedical Imaging and Big Data,
+North University of China.
+
+(b) School of Computer and Information Technology,
+Beijing Jiaotong University
+
+This is a new example and it may contain bugs. If you find a bug, please contact:
+ tj_55@nuc.edu.cn and larryshaw0079@live.com
+
+---->0. INTRODUCTION.
+
+This work presents an improved version of the algorithm “Density-Based Spatial
+Clustering of Applications with Noise” (DBSCAN) using a KD-Tree approach to find
+neighbors of each point for calculating clustered DNA damage.
+
+This example is based on the work described in ()
+and Comput Meth Prog Bio.101(2011) 265-267
+
+Any report or published results obtained using the Geant4-DNA software shall
+cite the following Geant4-DNA collaboration publications:
+Phys. Med. 31 (2015) 861-874
+Med. Phys. 37 (2010) 4692-4708
+
+ 1 - GEOMETRY DEFINITION
+
+    The world volume is a simple box which represents a 'pseudo infinite'
+    homogeneous medium.
+
+    The target volume is an ellipsoid of half-axes of 9.85, 7.1 and 2.5 µm
+    which represents a fibroblast cell nucleus.
+
+    Two parameters define the geometry :
+    - the material of the volume -- for Geant4-DNA it has to be water.
+    - the full size of the volume.
+
+    The default geometry is constructed in DetectorConstruction class.
+
+ 2 - PHYSICS LIST
+
+    PhysicsList is Geant4 modular physics list using G4EmDNAPhysics &
+    G4EmDNAChemistry constructors.
+
+ 3 - ACTION INITALIZATION
+
+    The class ActionInitialization instantiates and registers
+    to Geant4 kernel all user action classes.
+
+    While in sequential mode the action classes are instantiated just once,
+    via invoking the method:
+    ActionInitialization::Build()
+    in multi-threading mode the same method is invoked for each thread worker
+    and so all user action classes are defined thread-local.
+
+    A run action class is instantiated both thread-local
+    and global that's why its instance is created also in the method:
+    ActionInitialization::BuildForMaster()
+    which is invoked only in multi-threading mode.
+
+ 4 - AN EVENT: THE PRIMARY GENERATOR
+
+    The primary particle emission position is randomly and homogeneously
+    distributed on the surface of the ellipsoidal nucleus. The type of the
+    particle and its energy are set in the  PrimaryGeneratorAction class,
+    and can be changed via the G4 build-in commands of G4ParticleGun class.
+    The chemistry module is triggered in the StackingAction class when all
+    physical tracks have been processed.
+
+ 5 - STACKING ACTION
+
+     StackingAction::NewStage is called when a stack of tracks has been processed
+     (for more details, look at the Geant4 documentation).
+     A verification on whether physical tracks remain to be processed is done.
+     If no tracks remain to be processed, the chemical module is then triggered.
+
+ 6 - VISUALISATION
+
+    The visualization manager is set via the G4VisExecutive class
+    in the main() function in chem5.cc.
+    The initialisation of the drawing is done via a set of /vis/ commands
+    in the macro vis.mac. To activate the visualization mode run:
+     ./clustering -gui
+
+ 7 - OUTPUT
+    The output results containing for each event:
+    - the yield of single strand break
+    - the yield of complex single strand break
+    - the yield of double strand break
+    - the yield of double strand break plus
+    - the yield of double strand break plus plus
+    - the ratio of single strand break and double strand break
+    - the cluster size distribution
+    - the energy deposit in the Target
+    - the absorbed dose in the Target
+
+

@@ -55,8 +55,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
       = G4ParticleTable::GetParticleTable()->FindParticle("proton");
   particle_gun_->SetParticleDefinition(particle);
   particle_gun_->SetParticleEnergy(0.5 * MeV);
-//  particle_gun_->SetParticlePosition(
-//      G4ThreeVector(0.*micrometer,0.*micrometer,-0.25*micrometer));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -68,11 +66,6 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction() {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event *anEvent) {
-//  G4double pos_x = ((16.0*G4UniformRand())-8)*micrometer;
-//  G4double pos_y = ((8.0*G4UniformRand())-4.0)*micrometer;
-//  G4double pos_z = -2.5*micrometer;
-//  particle_gun_->SetParticleMomentumDirection(G4ThreeVector(0.0,0.0,1.0));
-
   G4double theta = G4UniformRand() * M_PI;
   G4double phi = G4UniformRand() * M_PI * 2.0;
   G4double pos_x = 9.85 * sin(theta) * cos(phi) * micrometer;

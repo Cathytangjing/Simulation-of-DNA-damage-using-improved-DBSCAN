@@ -45,7 +45,6 @@ target_link_libraries(clustering ${Geant4_LIBRARIES})
 set(EXAMPLECLUSTERING_SCRIPTS
         vis.mac
         run.in
-        runOneEvent.in
         )
 
 foreach (_script ${EXAMPLECLUSTERING_SCRIPTS})

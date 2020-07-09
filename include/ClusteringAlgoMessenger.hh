@@ -58,11 +58,11 @@ class ClusteringAlgoMessenger : public G4UImessenger {
   G4UIdirectory *fpAppliDir;
   G4UIcmdWithAnInteger *fpMinPtsCmd;
   G4UIcmdWithADouble *fpProbCmd;
-  G4UIcmdWithADouble *fpChemProbCmd;  // modified by tj
+  G4UIcmdWithADouble *fpChemProbCmd;
   G4UIcmdWithADoubleAndUnit *fpEpsCmd;
   G4UIcmdWithADoubleAndUnit *fpEminCmd;
   G4UIcmdWithADoubleAndUnit *fpEmaxCmd;
-  G4UIcmdWithADouble *fpReaRatCmd;  // modified by tj
+  G4UIcmdWithADouble *fpIndDamProbCmd;
 };
 
 #endif

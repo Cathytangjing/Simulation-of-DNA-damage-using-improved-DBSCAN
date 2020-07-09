@@ -51,10 +51,6 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
  public:
   virtual void GeneratePrimaries(G4Event *);
 
-//  inline G4ParticleGun* GetParticleGun() {
-//    return particle_gun_;
-//  }
-
  private:
   G4ParticleGun *particle_gun_;
 };

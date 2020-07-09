@@ -29,7 +29,14 @@
 // Med. Phys. 37 (2010) 4692-4708
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-// Authors: Henri Payno and Yann Perrot
+// The original DBSCAN clustering algorithm is reproduced by Henri Payno
+// and Yann Perrot at Blaise Pascal University, which has been released as
+// a Geant4-DNA user example, then published in a file sub-folder named
+// “extended/medical/dna/clustering”.
+//
+// Jing Tang,Qinfeng Xiao et al. improve the DBSCAN algorithm by utilizing
+// the KD-Tree to find neighbors of each site to calculate clustered DNA damage.
+// This work is published:
 //
 // $Id$
 //
@@ -42,11 +49,7 @@
 #include "ClusterSBPoints.hh"
 #include "SBPoint.hh"
 
-//#include "tree.h"
-
 #include <map>
-
-//typedef KD::Core<3, SBPoint> CORE;
 
 class ClusteringAlgoMessenger;
 
@@ -54,7 +57,7 @@ class ClusteringAlgo {
  public:
 
   ClusteringAlgo(G4double pEps, G4int pMinPts, G4double pSPointsProb, G4double pChemicalPointsProb,
-                 G4double pEMinDamage, G4double pEMaxDamage, G4double reaction_rate);
+                 G4double pEMinDamage, G4double pEMaxDamage, G4double ind_dam_prob);
   ~ClusteringAlgo();
 
   // Get Set methods
@@ -94,11 +97,11 @@ class ClusteringAlgo {
   void SetEMaxDamage(G4double val) {
     max_damage_energy_ = val;
   };
-  G4double GetReactionRate() {
-    return reaction_rate_;
+  G4double GetIndDamProb() {
+    return ind_dam_prob_;
   }
-  void SetReactionRate(G4double val) {
-    reaction_rate_ = val;
+  void SetIndDamProb(G4double val) {
+    ind_dam_prob_ = val;
   };
 
   // Register a damage (position, edep)
@@ -116,10 +119,10 @@ class ClusteringAlgo {
   G4bool IsDSBPP(std::vector<ClusterSBPoints *>::const_iterator it) const;
   // Return the number of simple break
   G4int GetSSB() const;
-  // Return the number of complex simple break
-  G4int GetComplexSSB() const;
-  // Return the number of double strand break
-  G4int GetDSB() const;
+//  // Return the number of complex simple break
+//  G4int GetComplexSSB() const;
+//  // Return the number of double strand break
+//  G4int GetDSB() const;
   // Return the number of complex simple break with new method
   G4int GetCSSBN() const;
   // Return the number of double strand break with new method, only size = 2
@@ -144,7 +147,7 @@ class ClusteringAlgo {
   G4bool IsInSensitiveArea();
   G4bool IsInChemicalSensitiveArea();
   G4bool IsEdepSufficient(G4double);
-  G4bool IsReactionRate();
+  G4bool IsIndDamProb();
 
   // Check if a SB point can be merged to a cluster, and do it
   bool FindCluster(SBPoint *pPt);
@@ -156,13 +159,13 @@ class ClusteringAlgo {
   void IncludeUnassociatedPoints();
 
   // Parameters to run clustering algorithm
-  G4double energy_;         // distance to merge SBPoints
+  G4double energy_;         // energy deposited
   G4int min_pts_;         // number of SBPoints to create a cluster
-  G4double damage_prob_; // probability for a point to be in the sensitive area
-  G4double chemical_damage_prob_;
+  G4double damage_prob_; // probability for a single particle to be in the sensitive area
+  G4double chemical_damage_prob_; // probability for a chemical product to be in the sensitive area
   G4double min_damage_energy_;  // min energy to create a damage
   G4double max_damage_energy_;  // energy to have a probability to create a damage = 1
-  G4double reaction_rate_;
+  G4double ind_dam_prob_;  // probability that ·OH reacts with the sugar-phosphate group to produce DNA strand breaks
 
   // Data structure containing all SB points
   std::vector<SBPoint *> set_of_points_;
